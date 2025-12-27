@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter OCR Desktop App</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗳️ Voter OCR Desktop App</h1>
+            <p class="subtitle">Extract Marathi Voter Data with High Accuracy</p>
+        </header>
+
+        <section class="upload-section" id="uploadSection">
+            <div style="display:flex; gap:20px; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:18px;">
+                <label for="templateSelect" style="color:#b8c6ff; font-weight:600;">Template:</label>
+                <select id="templateSelect" style="padding:12px 14px; border-radius:10px; border:1px solid rgba(139,92,246,0.3); background: rgba(10,14,39,0.6); color:#e0e0e0; min-width:260px;">
+                    <option value="" selected disabled>Select template...</option>
+                    <option value="boothlist_division">Boothlist Division (current)</option>
+                    <option value="mahanagarpalika">Mahanagpalika</option>
+                    <option value="ac_wise_low_quality">AC Wise (Low Quality Data)</option>
+                    <option value="zp_boothwise">ZP Boothwise</option>
+                    <option value="ward_wise_data">Ward Wise Data</option>
+                    <option value="boothwise">Boothwise</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-primary" onclick="uploadPDF()" id="uploadBtn">
+                    📄 Upload Single PDF
+                </button>
+                <button class="btn-primary" onclick="batchProcess()" id="batchBtn">
+                    📂 Batch Process Folder
+                </button>
+            </div>
+            <div id="fileInfo" class="file-info"></div>
+        </section>
+
+        <section class="progress-section" id="progressSection" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Processing...</p>
+            
+            <!-- Live Progress Log -->
+            <div id="progressStats" style="display: flex; gap: 30px; justify-content: center; margin: 15px 0; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;" id="currentPage">0</div>
+                    <div style="font-size: 0.85rem; color: #888;">Current Page</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #8b5cf6;" id="totalPages">0</div>
+                    <div style="font-size: 0.85rem; color: #888;">Total Pages</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #10b981;" id="votersFound">0</div>
+                    <div style="font-size: 0.85rem; color: #888;">Voters Found</div>
+                </div>
+            </div>
+            
+            <div id="progressLog" style="background: rgba(10, 14, 39, 0.6); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 15px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #b8c6ff; margin-top: 15px;">
+                <div id="logContent">Waiting for processing to start...</div>
+            </div>
+        </section>
+
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-header">
+                <div>
+                    <h2>Extracted Data</h2>
+                    <span class="count-badge" id="totalCount">0 voters</span>
+                </div>
+                <div class="results-actions">
+                    <button class="btn-primary" onclick="openAddModal()" style="font-size: 0.9rem; padding: 12px 20px;">
+                        ➕ Add Record
+                    </button>
+                    <button class="btn-danger" onclick="clearAllRecords()" style="font-size: 0.9rem; padding: 12px 20px;">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn-success" onclick="exportExcel()">
+                        📊 Export to Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div id="statsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="stat-card" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="statTotal">0</div>
+                    <div style="font-size: 0.85rem; color: #b8c6ff;">Total Voters</div>
+                </div>
+                <div class="stat-card" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="statMale">0</div>
+                    <div style="font-size: 0.85rem; color: #b8c6ff;">Male</div>
+                </div>
+                <div class="stat-card" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #ec4899;" id="statFemale">0</div>
+                    <div style="font-size: 0.85rem; color: #b8c6ff;">Female</div>
+                </div>
+                <div class="stat-card" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #8b5cf6;" id="statAvgAge">0</div>
+                    <div style="font-size: 0.85rem; color: #b8c6ff;">Avg Age</div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+                <div style="flex: 1; min-width: 250px;">
+                    <input type="text" id="searchInput" placeholder="🔍 Search by EPIC, Name, or Relation..." 
+                        oninput="filterTable()" 
+                        style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.3); background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem;">
+                </div>
+                <select id="genderFilter" onchange="filterTable()" style="padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.3); background: rgba(10, 14, 39, 0.6); color: #e0e0e0; min-width: 130px;">
+                    <option value="">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <select id="pageFilter" onchange="filterTable()" style="padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.3); background: rgba(10, 14, 39, 0.6); color: #e0e0e0; min-width: 130px;">
+                    <option value="">All Pages</option>
+                </select>
+                <button onclick="clearFilters()" style="padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.3); background: rgba(139, 92, 246, 0.1); color: #b8c6ff; cursor: pointer; font-weight: 500;">
+                    ✖ Clear
+                </button>
+            </div>
+            
+            <div style="margin-bottom: 10px; color: #888; font-size: 0.9rem;">
+                Showing <span id="filteredCount" style="color: #b8c6ff; font-weight: 600;">0</span> of <span id="totalRecords" style="color: #b8c6ff; font-weight: 600;">0</span> records
+            </div>
+
+            <div class="table-container">
+                <table id="votersTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('page_number')" style="cursor: pointer;" title="Click to sort">Page <span class="sort-indicator" data-col="page_number">⇅</span></th>
+                            <th onclick="sortTable('part_no')" style="cursor: pointer;" title="Click to sort">Part <span class="sort-indicator" data-col="part_no">⇅</span></th>
+                            <th onclick="sortTable('epic')" style="cursor: pointer;" title="Click to sort">EPIC <span class="sort-indicator" data-col="epic">⇅</span></th>
+                            <th onclick="sortTable('name_marathi')" style="cursor: pointer;" title="Click to sort">Name (Marathi) <span class="sort-indicator" data-col="name_marathi">⇅</span></th>
+                            <th onclick="sortTable('name_english')" style="cursor: pointer;" title="Click to sort">Name (English) <span class="sort-indicator" data-col="name_english">⇅</span></th>
+                            <th onclick="sortTable('relation_type')" style="cursor: pointer;" title="Click to sort">Relation <span class="sort-indicator" data-col="relation_type">⇅</span></th>
+                            <th onclick="sortTable('relation_name_english')" style="cursor: pointer;" title="Click to sort">Rel Name <span class="sort-indicator" data-col="relation_name_english">⇅</span></th>
+                            <th onclick="sortTable('age')" style="cursor: pointer;" title="Click to sort">Age <span class="sort-indicator" data-col="age">⇅</span></th>
+                            <th onclick="sortTable('gender')" style="cursor: pointer;" title="Click to sort">Gen <span class="sort-indicator" data-col="gender">⇅</span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="votersTableBody">
+                        <!-- Data rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div style="background: linear-gradient(135deg, rgba(20, 29, 55, 0.95), rgba(15, 23, 42, 0.95)); padding: 40px; border-radius: 20px; width: 500px; max-width: 90%; color: #e0e0e0; box-shadow: 0 25px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); backdrop-filter: blur(20px);">
+            <h2 id="modalTitle" style="margin-bottom: 25px; color: #b8c6ff; font-size: 1.8rem;">Edit Record</h2>
+            <form id="editForm" onsubmit="saveRecord(event)">
+                <input type="hidden" id="editIndex">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">EPIC No</label>
+                        <input type="text" id="editEpic" required style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Part No</label>
+                        <input type="text" id="editPartNo" style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Name (Marathi)</label>
+                        <input type="text" id="editNameMar" required style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Name (English)</label>
+                        <input type="text" id="editNameEng" required style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Relation Type</label>
+                        <select id="editRelType" style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                            <option value="Father">Father</option>
+                            <option value="Husband">Husband</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Relation Name (Eng)</label>
+                        <input type="text" id="editRelName" required style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Age</label>
+                        <input type="text" id="editAge" required style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #b8c6ff; font-size: 0.9rem;">Gender</label>
+                        <select id="editGender" style="width: 100%; padding: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(10, 14, 39, 0.6); color: #e0e0e0; font-size: 0.95rem; transition: all 0.3s ease;">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" onclick="closeModal()" style="padding: 12px 25px; border: 1px solid rgba(139, 92, 246, 0.3); background: rgba(139, 92, 246, 0.1); color: #b8c6ff; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">Cancel</button>
+                    <button type="submit" class="btn-success" style="padding: 12px 25px; border-radius: 8px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

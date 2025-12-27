@@ -1,0 +1,21 @@
+*.pyc
+__pycache__/
+.env
+venv/
+env/
+*.log
+*.xlsx
+*.xls
+temp/
+.DS_Store
+dist/
+build/
+*.spec
+
+# Secrets
+google-cloud-vision-key.json
+*.json
+
+# Build Artifacts
+*.zip
+VoterOCR_Final.zip
