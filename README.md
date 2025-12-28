@@ -1,163 +1,160 @@
-# Python Voter OCR Desktop App
+# Voter OCR Desktop App
 
-Complete Python desktop application for extracting Marathi voter data from PDFs with automatic Excel export.
+Extract Marathi voter data from PDFs with automatic Excel export. Supports 6 different PDF templates.
 
-## Features
+## 🚀 Quick Start (Executable)
 
-- ✅ **OCR Engine**: Google Cloud Vision (proven OCR_Samruddhi logic)
-- ✅ **Template Parsing**: Coordinate-based voter block detection
-- ✅ **Marathi Corrections**: Automatic fixes (आजम → आत्राम)
-- ✅ **Modern UI**: Glassmorphism design with PyWebView
-- ✅ **Excel Export**: Formatted XLSX with all fields
-- ✅ **Fast & Accurate**: 2-3 seconds per page, 95%+ accuracy
+**No installation required!**
 
-## Tech Stack
+1. Download `VoterOCR_Final_v2.zip`
+2. Unzip to any folder
+3. Double-click `VoterOCR.exe`
 
-- **GUI**: PyWebView (HTML/CSS/JS + Python backend)
-- **OCR**: Google Cloud Vision API
-- **Backend**: Python 3.8+
-- **Export**: openpyxl
+**Requirements:** Windows 10 or 11
 
-## Quick Start
+---
 
-### 1. Install Dependencies
+## 📦 Setup from Source Code
+
+### Prerequisites
+- Python 3.11+
+- Google Cloud Vision API key
+
+### Step 1: Clone Repository
 ```bash
-cd python-voter-ocr
+git clone https://github.com/zishandeshmukh/ocr-setup.git
+cd ocr-setup
+```
+
+### Step 2: Install Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Setup Environment
-Copy `.env.example` to `.env` and configure:
-```bash
-copy .env.example .env
-```
+### Step 3: Add API Key
+Place your `google-cloud-vision-key.json` in the project root folder.
 
-Edit `.env`:
-```env
-GOOGLE_APPLICATION_CREDENTIALS=../google-cloud-vision-key.json
-```
-
-### 3. Run Application
+### Step 4: Run
 ```bash
 python main.py
 ```
 
-## Usage
+---
 
-1. **Upload PDF**: Click "Upload PDF" button
-2. **Wait for Processing**: App extracts data automatically
-3. **Review Results**: Check extracted voter data in table
-4. **Export**: Click "Export to Excel" to save
+## 📋 Supported Templates
 
-## Project Structure
+| Template | Description | PDF Format |
+|----------|-------------|------------|
+| **Boothwise** | मतदान केंद्र based | Standard booth list |
+| **Mahanagarpalika** | महानगरपालिका format | Municipal corporation |
+| **Wardwise** | प्रभाग wise data | Ward-based lists |
+| **ZP Boothwise** | जिल्हा परिषद format | Zilla Parishad |
+| **Boothlist Division** | निवडणूक विभाग | Election division |
+| **AC Wise Low Quality** | विधानसभा मतदारसंघ | Assembly constituency |
+
+---
+
+## 🔧 Features
+
+- ✅ **6 PDF Templates** - Supports all major voter list formats
+- ✅ **Google Cloud Vision OCR** - High accuracy Marathi text extraction
+- ✅ **Automatic Header Parsing** - Extracts Corporation, Ward, Part No, Address
+- ✅ **EPIC Detection** - Robust voter ID extraction (SRO, JVW, CPV, SML formats)
+- ✅ **Excel Export** - Template-specific columns with proper segregation
+- ✅ **Batch Processing** - Process entire folders of PDFs
+- ✅ **Modern UI** - Glassmorphism design with dark mode
+
+---
+
+## 📁 Project Structure
 
 ```
 python-voter-ocr/
 ├── backend/
-│   ├── api.py              # PyWebView API
-│   ├── ocr_engine.py       # GCV integration
-│   ├── parser.py           # Template parsing
-│   ├── corrections.py      # Marathi corrections
-│   └── excel_export.py     # Excel generation
+│   ├── api.py              # Main API with template configs
+│   ├── ocr_engine.py       # Google Cloud Vision integration
+│   ├── parser.py           # Text extraction & EPIC patterns
+│   ├── corrections.py      # Marathi OCR corrections
+│   ├── excel_export.py     # Template-specific Excel export
+│   └── gemini_transliterate.py  # Marathi to English
 ├── frontend/
-│   ├── index.html          # UI
+│   ├── index.html          # UI markup
 │   ├── styles.css          # Styling
 │   └── app.js              # Frontend logic
-├── main.py                 # Entry point
-├── requirements.txt
-└── .env
+├── main.py                 # Application entry point
+├── build_exe.py            # Build standalone executable
+└── requirements.txt
 ```
 
-## How It Works
+---
 
-1. **PDF Upload**: User selects PDF file
-2. **PDF to Images**: Convert pages to images (300 DPI)
-3. **OCR**: Google Cloud Vision extracts text with coordinates
-4. **Template Parsing**: Divides page into voter blocks (rows × cols)
-5. **Data Extraction**: Regex patterns extract voter fields
-6. **Corrections**: Apply Marathi OCR corrections
-7. **Transliteration**: Convert Marathi to English
-8. **Excel Export**: Format and save to XLSX
+## 🛠️ Building Executable
 
-## OCR_Samruddhi Integration
-
-This app uses the exact same logic as OCR_Samruddhi:
-- `gcv_ocr.py` → `backend/ocr_engine.py`
-- `gcv_xy_parser.py` → `backend/parser.py`
-- Template-based coordinate parsing
-- Row/column grid detection
-- Line-by-line block structuring
-
-## Configuration
-
-### Templates
-Edit `backend/api.py` to modify templates:
-```python
-templates = {
-    'Assembly_Standard': {
-        'left': 0,
-        'right': 0,
-        'top': 300,
-        'bottom': 100,
-        'rows': 3,
-        'cols': 2
-    }
-}
-```
-
-### Corrections
-Add more corrections in `backend/corrections.py`:
-```python
-MARATHI_CORRECTIONS = {
-    'आजम': 'आत्राम',
-    # Add more...
-}
-```
-
-## Packaging (Optional)
-
-Create standalone .exe:
 ```bash
-pyinstaller --onefile --windowed --add-data "frontend;frontend" main.py
+python build_exe.py
 ```
 
-## Troubleshooting
+Output: `dist/VoterOCR/VoterOCR.exe`
 
-### OCR Not Working
-- Verify GCV credentials path in `.env`
-- Check `GOOGLE_APPLICATION_CREDENTIALS` is set correctly
+To create a zip for distribution:
+```bash
+Compress-Archive -Path "dist\VoterOCR" -DestinationPath "VoterOCR.zip"
+```
 
-### UI Not Loading
-- Ensure `frontend/` directory exists
-- Check all HTML/CSS/JS files are present
+---
 
-### Export Failed
-- Check write permissions in output directory
-- Ensure openpyxl is installed
+## 📊 Excel Output Columns
 
-## Performance
+### Mahanagarpalika/Wardwise
+| Column | Description |
+|--------|-------------|
+| Corporation | महानगरपालिका name |
+| Ward | प्रभाग number |
+| Part No | यादी भाग क्र |
+| Address | पत्ता |
+| EPIC | Voter ID |
+| Name (Marathi/English) | Voter name |
+| Relation Type | पती/वडील |
+| Relation Name | Relative name |
+| House No | घर क्रमांक |
+| Age | वय |
+| Gender | लिंग |
 
-- **Speed**: ~2-3 seconds per page
-- **Accuracy**: 95%+ with corrections
-- **Memory**: <500MB
+### AC Wise Low Quality
+| Column | Description |
+|--------|-------------|
+| Assembly Constituency | विधानसभा मतदारसंघ |
+| Division | विभाग |
+| Part No | यादी भाग क्रमांक |
+| EPIC | Voter ID |
+| (+ standard voter fields) | |
 
-## Comparison
+---
 
-| Feature | OCR_Samruddhi | This App |
-|---------|---------------|----------|
-| Backend | ✅ Python | ✅ Python |
-| UI | Tkinter (basic) | ✅ Modern web UI |
-| OCR | GCV | ✅ Same (GCV) |
-| Parsing | Template | ✅ Same logic |
-| Export | CSV/Excel | ✅ Formatted Excel |
-| Deployment | Scripts | ✅ Single .exe |
+## ⚠️ Troubleshooting
 
-## Credits
+### "Credentials file not found"
+- Ensure `google-cloud-vision-key.json` is in the app folder
 
-- OCR Logic: Based on OCR_Samruddhi
-- UI Framework: PyWebView
-- OCR Engine: Google Cloud Vision
+### "Export error: template_config not defined"
+- Update to latest code version
 
-## License
+### App crashes on startup (uncle's laptop)
+- Requires Windows 10/11 with WebView2 (usually pre-installed)
+
+### EPIC showing "ERROR_MISSING_EPIC"
+- Template margins may need adjustment for your PDF format
+
+---
+
+## 📝 License
 
 MIT
+
+---
+
+## 🙏 Credits
+
+- OCR Engine: Google Cloud Vision API
+- UI Framework: PyWebView
+- Transliteration: Google Gemini API (optional)
