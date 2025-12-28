@@ -62,8 +62,8 @@ def main():
     print("✅ Window created successfully")
     print("📍 Starting application...")
     
-    # Start the application
-    webview.start(debug=True)
+    # Start the application with EdgeChromium backend (avoids pythonnet/WinForms dependency)
+    webview.start(debug=True, gui='edgechromium')
 
 if __name__ == '__main__':
     main()

@@ -475,6 +475,8 @@ def export_to_excel(voters, output_path, template='default'):
     ws.title = "Voter Data"
     
     # Get template-specific columns or use default
+    template_key = template.lower().replace(' ', '_').replace('-', '_')
+    template_config = TEMPLATE_COLUMNS.get(template_key, None)
     
     if template_config:
         headers = template_config['headers']

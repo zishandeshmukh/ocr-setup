@@ -12,7 +12,7 @@ def build():
     """Build the executable"""
     print("🔨 Building Voter OCR Desktop App...")
     
-    # PyInstaller command
+    # PyInstaller command - Using EdgeChromium backend (no pythonnet required)
     cmd = [
         sys.executable, '-m', 'PyInstaller',
         '--name=VoterOCR',
@@ -21,10 +21,7 @@ def build():
         '--add-data=frontend;frontend',
         '--add-data=google-cloud-vision-key.json;.',
         '--hidden-import=webview',
-        '--hidden-import=webview.platforms.winforms',
-        '--hidden-import=clr',
-        '--hidden-import=clr_loader',
-        '--hidden-import=pythonnet',
+        '--hidden-import=webview.platforms.edgechromium',
         '--hidden-import=google.cloud.vision',
         '--hidden-import=google.cloud.vision_v1',
         '--hidden-import=google.api_core',
@@ -40,6 +37,7 @@ def build():
         '--noconfirm',
         'main.py'
     ]
+    
     
     print(f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, cwd=os.path.dirname(os.path.abspath(__file__)))
